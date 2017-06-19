@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>小球运动</title>
+</head>
+<body>
+
+</body>
+<script src="js/d3.min.js"></script>
+<script>
+    var width=500;
+    var height=500;
+    var t0=new Date();
+    var t1=new Date();
+    var dt=t0-t1;
+    console.log(dt);
+    var svg=d3.select('body')
+            .append('svg')
+            .attr('width',width)
+            .attr('height',height);
+
+    var rect=svg.append('rect')
+            .attr('width',500)
+            .attr('height',500)
+            .attr('stroke-width','3px')
+            .attr('stroke','blue')
+            .attr('fill','none');
+
+    var ball=svg.append('circle')
+            .attr('cx',250)
+            .attr('cy',250)
+            .attr('r',10)
+            .attr('fill','black');
+</script>
+</html>

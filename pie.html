@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>饼状图</title>
+</head>
+<body>
+
+</body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+    var width=500;
+    var height=500;
+    var svg=d3.select('body')
+            .append('svg')
+            .attr('width',width)
+            .attr('height',height);
+
+//    var dataSet=d3.json('dataset.json',function(error,data){
+//        console.log(json(data));
+//
+//    });
+    var dataSet=[['小米',60.8],['三星',58.4],['联想',47.3],['苹果',46.6],['华为',41.3],['酷派',40.1],['其它',111.5]];
+
+    var pie=d3.layout.pie()
+            .value(function(d){ return d[1];});
+    var pieData= pie(dataSet);
+    console.log(pieData);
+
+    var outerRadius=width/3;
+    var innerRadius=0;
+    var arc=d3.svg.arc()
+            .innerRadius(innerRadius)
+            .outerRadius(outerRadius);
+    var color=d3.scale.category20();
+
+    var arcs=svg.selectAll('g')
+            .data(pieData)
+            .enter()
+            .append('g')
+            .attr('transform',"translate("+(width/2)+","+(height/2)+")");
+
+    arcs.append('path')
+            .attr('fill',function(d,i){
+                return color(i);
+            })
+            .attr('d',function(d){
+                return arc(d);
+            });
+
+    arcs.append('text')
+            .attr('transform',function(d){
+                var x=arc.centroid(d)[0]*1.4;
+                var y=arc.centroid(d)[1]*1.4;
+                return "translate("+x+","+y+")";
+            })
+            .attr("text-anchor","middle")
+            .text(function(d){
+                var percent=Number(d.value)/ d3.sum(dataSet,function(d){
+                            return d[1];
+                        })*100;
+                return percent.toFixed(1)+"%";
+            });
+
+    arcs.append('line')
+            .attr('stroke','black')
+            .attr('x1',function(d){
+                return arc.centroid(d)[0]*2;
+            })
+            .attr('y1',function(d){
+                return arc.centroid(d)[1]*2;
+            })
+            .attr('x2',function(d){
+                return arc.centroid(d)[0]*2.2;
+            })
+            .attr('y2',function(d){
+                return arc.centroid(d)[1]*2.2;
+            });
+
+    arcs.append('text')
+            .attr("transform",function(d){
+                var x=arc.centroid(d)[0]*2.5;
+                var y=arc.centroid(d)[1]*2.5;
+                return "translate("+x+","+y+")"
+            })
+            .attr('text-anchor','middle')
+            .text(function(d){
+                return d.data[0];
+            });
+
+
+</script>
+</html>

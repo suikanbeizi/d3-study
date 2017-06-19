@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gantt Chart Example 3</title>
+    <link type="text/css" href="http://mbostock.github.io/d3/style.css" rel="stylesheet" />
+    <link type="text/css" href="example.css" rel="stylesheet" />
+</head>
+<body>
+<!--<button type="button" onclick="addTask()">Add Task</button>-->
+<!--<button type="button" onclick="removeTask()">Remove Task</button>-->
+<!--<button type="button" onclick="changeTimeDomain('1hr')">1 HR</button>-->
+<!--<button type="button" onclick="changeTimeDomain('3hr')">3 HR</button>-->
+<!--<button type="button" onclick="changeTimeDomain('6hr')">6 HR</button>-->
+<!--<button type="button" onclick="changeTimeDomain('1day')">1 DAY</button>-->
+<!--<button type="button" onclick="changeTimeDomain('1week')">1 WEEK</button>-->
+</body>
+</html>
+<script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+<script type="text/javascript" src="gantt-chart-d3v2.js"></script>
+<script>
+    var tasks = [
+        {"startDate":new Date('2017-02-14'),"endDate":new Date('2017-03-11'),"taskName":"E Job","status":"RUNNING"},
+        {"startDate":new Date('2017-03-11'),"endDate":new Date('2017-03-15'),"taskName":"A Job","status":"RUNNING"},
+        {"startDate":new Date('2017-03-15'),"endDate":new Date('2017-04-15'),"taskName":"N Job","status":"RUNNING"}
+        ];
+        console.log(tasks);
+    var taskStatus = {
+        "SUCCEEDED" : "bar",
+        "FAILED" : "bar-failed",
+        "RUNNING" : "bar-running",
+        "KILLED" : "bar-killed"
+    };
+
+    var taskNames = [ "D Job", "P Job", "E Job", "A Job", "N Job" ];
+
+    tasks.sort(function(a, b) {
+        return a.endDate - b.endDate;
+    });
+    var maxDate = tasks[tasks.length - 1].endDate;
+    tasks.sort(function(a, b) {
+        return a.startDate - b.startDate;
+    });
+    var minDate = tasks[0].startDate;
+
+    var format = "%Y-%m-%d";
+    var timeDomainString = "1day";
+
+    var gantt = d3.gantt().taskTypes(taskNames).taskStatus(taskStatus).tickFormat(format).height(450).width(800);
+
+
+    gantt.timeDomainMode("fixed");
+    changeTimeDomain(timeDomainString);
+
+    gantt(tasks);
+
+    function changeTimeDomain(timeDomainString) {
+        this.timeDomainString = timeDomainString;
+        switch (timeDomainString) {
+            case "1hr":
+                format = "%H:%M:%S";
+                gantt.timeDomain([ d3.time.hour.offset(getEndDate(), -1), getEndDate() ]);
+                break;
+            case "3hr":
+                format = "%H:%M";
+                gantt.timeDomain([ d3.time.hour.offset(getEndDate(), -3), getEndDate() ]);
+                break;
+
+            case "6hr":
+                format = "%H:%M";
+                gantt.timeDomain([ d3.time.hour.offset(getEndDate(), -6), getEndDate() ]);
+                break;
+
+            case "1day":
+                format = "%Y-%m-%d";
+                break;
+
+            case "1week":
+                format = "%a %H:%M";
+                gantt.timeDomain([ d3.time.day.offset(getEndDate(), -7), getEndDate() ]);
+                break;
+            default:
+                format = "%H:%M"
+
+        }
+        gantt.getTimeDomain(d3.min( tasks,function(d){ return d.startDate;}),d3.max( tasks,function(d){ return d.endDate;}))
+        gantt.tickFormat(format);
+        gantt.redraw(tasks);
+    }
+
+//    function getEndDate() {
+//        var lastEndDate = Date.now();
+//        if (tasks.length > 0) {
+//            lastEndDate = tasks[tasks.length - 1].endDate;
+//        }
+//
+//        return lastEndDate;
+//    }
+//
+//    function addTask() {
+//        var lastEndDate = getEndDate();
+//        var taskStatusKeys = Object.keys(taskStatus);
+//        var taskStatusName = taskStatusKeys[Math.floor(Math.random() * taskStatusKeys.length)];
+//        var taskName = taskNames[Math.floor(Math.random() * taskNames.length)];
+//
+//        tasks.push({
+//            "startDate" : d3.time.hour.offset(lastEndDate, Math.ceil(1 * Math.random())),
+//            "endDate" : d3.time.hour.offset(lastEndDate, (Math.ceil(Math.random() * 3)) + 1),
+//            "taskName" : taskName,
+//            "status" : taskStatusName
+//        });
+//
+//        changeTimeDomain(timeDomainString);
+//        gantt.redraw(tasks);
+//    };
+//
+//    function removeTask() {
+//        tasks.pop();
+//        changeTimeDomain(timeDomainString);
+//        gantt.redraw(tasks);
+//    };
+</script>

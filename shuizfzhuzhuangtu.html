@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+    .bar--positive {
+        fill: steelblue;
+    }
+
+    .bar--negative {
+        fill: darkorange;
+    }
+
+    .axis text {
+        font: 10px sans-serif;
+    }
+
+    .axis path,
+    .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+    }
+
+</style>
+<body>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script>
+    var dataset=[
+        {"name":"A","value":-15},
+        {"name":"B","value":15},
+        {"name":"C","value":-15},
+        {"name":"D","value":15},
+        {"name":"F","value":15},
+        {"name":"E","value":15},
+        {"name":"A","value":15},
+        {"name":"B","value":-15},
+    ];
+    var margin = {top: 20, right: 30, bottom: 40, left: 30},
+            width = 500 - margin.left - margin.right,
+            height = 500 - margin.top - margin.bottom;
+
+    var x = d3.scale.linear()
+            .range([0, height]);
+
+    var y = d3.scale.ordinal()
+            .rangeRoundBands([0, width], 0.1);
+
+    var xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("left");
+
+    var yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("bottom")
+            .tickSize(0)
+            .tickPadding(6);
+
+    var svg = d3.select("body").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+//    d3.tsv("./data/zhuzhuangtu.tsv", type, function(error, data) {
+        x.domain([d3.max(dataset, function(d) { return d.value; }),d3.min(dataset, function(d) { return d.value; })]).nice();
+        y.domain(dataset.map(function(d) { return d.name; }));
+        console.log(dataset);
+        svg.selectAll(".bar")
+                .data(dataset)
+                .enter().append("rect")
+                .attr("class", function(d) { return "bar bar--" + (d.value < 0 ? "negative" : "positive"); })
+                .attr("y", function(d) { return x(Math.max(0, d.value)); })
+                .attr("x", function(d) { return y(d.name); })
+                .attr("height", function(d) { return Math.abs(x(d.value) - x(0)); })
+                .attr("width", y.rangeBand());
+
+        svg.append("g")
+                .attr("class", "y axis")
+                .attr("transform", "translate(0," + x(0) + ")")
+                .call(yAxis);
+
+        svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0,0)")
+                .call(xAxis);
+//    });
+
+    function type(d) {
+        d.value = +d.value;
+        return d;
+    }
+
+</script>

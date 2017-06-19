@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>拖拽</title>
+</head>
+<body>
+
+</body>
+<script src="js/d3.min.js"></script>
+<script>
+    var width=500;
+    var height=500;
+    var svg=d3.select('body')
+            .append('svg')
+            .attr('width',width)
+            .attr('height',height);
+
+    var circles=[{cx:150,cy:200,r:30},{cx:250,cy:200,r:30}];
+
+    var drag=d3.drag()
+            .subject(function(d,i){
+                return {x: d.cx,y: d.cy}
+            })
+            .on('start',function(d){
+                console.log('拖拽开始');
+            })
+            .on('end',function(d){
+                console.log('拖拽开始');
+            })
+            .on('drag',function(d){
+                d3.select(this)
+                        .attr('cx', d.cx=d3.event.x)
+                        .attr('cy', d.cy=d3.event.y);
+            });
+    var circle=svg.selectAll('circle')
+            .data(circles)
+            .enter()
+            .append('circle')
+            .attr('cx',function(d,i){
+                return d.cx;
+            })
+            .attr('cy',function(d,i){
+                return d.cy;
+            })
+            .attr('r',function(d,i){
+                return d.r;
+            })
+            .attr('fill','black')
+            .call(drag);
+
+
+</script>
+</html>

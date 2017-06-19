@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>时钟</title>
+</head>
+<body>
+
+</body>
+<script src="js/d3.min.js"></script>
+<script>
+    var width=500;
+    var height=500;
+    var svg=d3.select('body')
+            .append('svg')
+            .attr('width',width)
+            .attr('height',height);
+
+    function getTimeString(){
+        var time=new Date();
+        var hours =time.getHours();
+        var minutes=time.getMinutes();
+        var seconds=time.getSeconds();
+
+        hours=hours<10?"0"+hours:hours;
+        minutes=minutes<10?"0"+minutes:minutes;
+        seconds=seconds<10?"0"+seconds:seconds;
+
+        return hours+":"+minutes+":"+seconds;
+    }
+
+    var timeText=svg.append('text')
+            .attr('class','time')
+            .attr('x',100)
+            .attr('y',100)
+            .text(getTimeString());
+    setInterval(upDateTime,1000);
+
+    function upDateTime(){
+        timeText.text(getTimeString());
+    }
+
+</script>
+</html>

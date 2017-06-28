@@ -17,9 +17,9 @@ d3.gantt = function() {
     };
     var margin = {
         top : 20,
-        right : 40,
-        bottom : 20,
-        left : 150
+        right : 60,
+        bottom : 60,
+        left : 60
     };
     //var timeDomainStart = d3.time.hour.offset(new Date(),-3);
     //var timeDomainEnd = d3.time.hour.offset(new Date(),+3);
@@ -29,8 +29,8 @@ d3.gantt = function() {
     var timeDomainMode = FIT_TIME_DOMAIN_MODE;// fixed or fit
     var taskTypes = [];
     var taskStatus = [];
-    var height = document.body.clientHeight - margin.top - margin.bottom-5;
-    var width = document.body.clientWidth - margin.right - margin.left-5;
+    var height = 200;
+    var width = 400;
 
     var tickFormat = "%Y-%m-%d";
 
@@ -69,10 +69,10 @@ d3.gantt = function() {
     };
 
     var initAxis = function() {
-        x = d3.time.scale().domain([ minStartDate, maxEndDate ]).range([ 0, width ]).clamp(true);
+        x = d3.time.scale().domain([ minStartDate, maxEndDate ]).range([ 0, width-margin.left-margin.right ]).clamp(true);
         y = d3.scale.ordinal().domain(taskTypes).rangeRoundBands([ 0, height - margin.top - margin.bottom ], 0.2);
         xAxis = d3.svg.axis().scale(x).orient("bottom").tickFormat(d3.time.format(tickFormat))
-            .tickSize(10).tickPadding(8).ticks(d3.time.day,10);
+            .tickSize(10).tickPadding(8).ticks(5);
 
         yAxis = d3.svg.axis().scale(y).orient("left").tickSize(0);
     };
@@ -85,14 +85,22 @@ d3.gantt = function() {
         var svg = d3.select("body")
             .append("svg")
             .attr("class", "chart")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
+            .attr("width", width )
+            .attr("height", height )
             .append("g")
-            .attr("class", "gantt-chart")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
+            .attr("width", width-margin.left-margin.right )
+            .attr("height", height-margin.top-margin.bottom )
             .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
-
+        var planTip=d3.tip()
+            .attr("class","factTip")
+            .offset([-10,0])
+            .html(function(d){
+                var yStartDate= d.startDate;
+                var yEndDate= d.endDate;
+                return '<p>'+yStartDate.getFullYear()+'-'+(yStartDate.getMonth()+1)+'-'+yStartDate.getDate()+'<span>至</span>'+yEndDate.getFullYear()+'-'+(yEndDate.getMonth()+1)+'-'+yEndDate.getDate()+'</p>' +
+                    '<p><strong>Time:</strong>'+((d.endDate-d.startDate)/1000/60/60/24)+'</p>';
+            });
+        svg.call(planTip);
         svg.selectAll(".chart")
             .data(tasks, keyFunction).enter()
             .append("rect")
@@ -107,18 +115,59 @@ d3.gantt = function() {
             .attr("height", function(d) { return y.rangeBand(); })
             .attr("width", function(d) {
                 return (x(d.endDate) - x(d.startDate));
+            })
+            .attr('fill','#669900')
+            .on('mouseover', planTip.show)
+            .on('mouseout', planTip.hide);
+
+        var factTip=d3.tip()
+            .attr("class","factTip")
+            .offset([-10,0])
+            .html(function(d){
+                var yStartDate= d.fact.startDate;
+                var yEndDate= d.fact.endDate;
+                return '<p>'+yStartDate.getFullYear()+'-'+(yStartDate.getMonth()+1)+'-'+yStartDate.getDate()+'<span>To</span>'+yEndDate.getFullYear()+'-'+(yEndDate.getMonth()+1)+'-'+yEndDate.getDate()+'</p>' +
+                    '<p><strong>Time:</strong>'+((d.endDate-d.startDate)/1000/60/60/24)+'</p>';
             });
+        svg.call(factTip);
+        svg.selectAll(".factChart")
+            .data(tasks).enter()
+            .append("rect")
+            .attr("rx", 5)
+            .attr("ry", 5)
+            .attr("class", ".factChart")
+            .attr("x",function(d){
+                return (x(d.fact.startDate)-x(d.startDate));
+            })
+            .attr("y", y.rangeBand()/2/2)
+            .attr("transform", rectTransform)
+            .attr("height", function(d) { return y.rangeBand()/2; })
+            .attr("width", function(d,i) {
+                return (x(d.fact.endDate) - x(d.fact.startDate));
+            })
+            .attr("fill","red")
+            .on('mouseover', factTip.show)
+            .on('mouseout', factTip.hide);
+
+
 
        // console.log(y.rangeBands(20));
         svg.append("g")
             .attr("class", "x axis")
             .attr("transform", "translate(0, " + (height - margin.top - margin.bottom) + ")")
-            .transition()
             .call(xAxis)
             .selectAll("text")
             .attr("transform", "rotate(-20)");
 
-        svg.append("g").attr("class", "y axis").transition().call(yAxis);
+        svg.append("g")
+            .attr("class", "y axis")
+            .call(yAxis)
+            .append("text")
+            .text("aa")
+            .attr("transform","translate(0,0)")
+            .attr("text-anchor","end")
+            .attr("font-size","12px")
+            .attr("color","red");
 
         return gantt;
 

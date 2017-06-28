@@ -1,121 +1,143 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Gantt Chart Example 3</title>
+
+    <title>Gantt Chart </title>
+    <meta charset="UTF-8">
     <link type="text/css" href="http://mbostock.github.io/d3/style.css" rel="stylesheet" />
     <link type="text/css" href="example.css" rel="stylesheet" />
 </head>
 <body>
-<!--<button type="button" onclick="addTask()">Add Task</button>-->
-<!--<button type="button" onclick="removeTask()">Remove Task</button>-->
-<!--<button type="button" onclick="changeTimeDomain('1hr')">1 HR</button>-->
-<!--<button type="button" onclick="changeTimeDomain('3hr')">3 HR</button>-->
-<!--<button type="button" onclick="changeTimeDomain('6hr')">6 HR</button>-->
-<!--<button type="button" onclick="changeTimeDomain('1day')">1 DAY</button>-->
-<!--<button type="button" onclick="changeTimeDomain('1week')">1 WEEK</button>-->
 </body>
 </html>
 <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
-<script type="text/javascript" src="gantt-chart-d3v2.js"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
 <script>
     var tasks = [
-        {"startDate":new Date('2017-02-14'),"endDate":new Date('2017-03-11'),"taskName":"E Job","status":"RUNNING"},
-        {"startDate":new Date('2017-03-11'),"endDate":new Date('2017-03-15'),"taskName":"A Job","status":"RUNNING"},
-        {"startDate":new Date('2017-03-15'),"endDate":new Date('2017-04-15'),"taskName":"N Job","status":"RUNNING"}
+        {"startDate":new Date('2017-02-14'),"endDate":new Date('2017-03-11'),"taskName":"阶段1","fact":{
+            "startDate":new Date('2017-02-16'),"endDate":new Date('2017-03-10')
+        }},
+        {"startDate":new Date('2017-03-11'),"endDate":new Date('2017-03-15'),"taskName":"阶段2","fact":{
+            "startDate":new Date('2017-03-13'),"endDate":new Date('2017-03-15')
+        }},
+        {"startDate":new Date('2017-03-15'),"endDate":new Date('2017-04-15'),"taskName":"阶段3","fact":{
+            "startDate":new Date('2017-03-19'),"endDate":new Date('2017-04-20')
+        }}
         ];
-        console.log(tasks);
-    var taskStatus = {
-        "SUCCEEDED" : "bar",
-        "FAILED" : "bar-failed",
-        "RUNNING" : "bar-running",
-        "KILLED" : "bar-killed"
-    };
 
-    var taskNames = [ "D Job", "P Job", "E Job", "A Job", "N Job" ];
+    var taskNames = [ "阶段1", "阶段2", "阶段3", "阶段4", "阶段5" ];
 
     tasks.sort(function(a, b) {
         return a.endDate - b.endDate;
     });
-    var maxDate = tasks[tasks.length - 1].endDate;
-    tasks.sort(function(a, b) {
-        return a.startDate - b.startDate;
-    });
-    var minDate = tasks[0].startDate;
 
     var format = "%Y-%m-%d";
-    var timeDomainString = "1day";
+//    format = "%H:%M";
 
-    var gantt = d3.gantt().taskTypes(taskNames).taskStatus(taskStatus).tickFormat(format).height(450).width(800);
+    var minDate=d3.min( tasks,function(d){ return d.startDate;})<d3.min( tasks,function(d){ return d.fact.startDate;})?d3.min( tasks,function(d){ return d.startDate;}):d3.min( tasks,function(d){ return d.fact.startDate;});
+    var maxDate=d3.max( tasks,function(d){ return d.endDate;})>d3.max( tasks,function(d){ return d.fact.endDate;})?d3.max( tasks,function(d){ return d.endDate;}):d3.max( tasks,function(d){ return d.fact.endDate;});
 
+    var margin = {
+        top : 20,
+        right : 60,
+        bottom : 60,
+        left : 60
+    };
+    var height = 200;
+    var width = 400;
+    var tickFormat = "%Y-%m-%d";
+    var keyFunction = function(d) {
+        return d.startDate + d.taskName + d.endDate;
+    };
+    var rectTransform = function(d) {
+        return "translate(" + x(d.startDate) + "," + y(d.taskName) + ")";
+    };
+    x = d3.time.scale().domain([minDate,maxDate ]).range([ 0, width-margin.left-margin.right ]).clamp(true);
+    y = d3.scale.ordinal().domain(taskNames).rangeRoundBands([ 0, height - margin.top - margin.bottom ], 0.2);
+    xAxis = d3.svg.axis().scale(x).orient("bottom").tickFormat(d3.time.format(tickFormat))
+            .tickSize(10).tickPadding(8).ticks(5);
 
-    gantt.timeDomainMode("fixed");
-    changeTimeDomain(timeDomainString);
+    yAxis = d3.svg.axis().scale(y).orient("left").tickSize(0);
 
-    gantt(tasks);
+        var svg = d3.select("body")
+                .append("svg")
+                .attr("class", "chart")
+                .attr("width", width )
+                .attr("height", height )
+                .append("g")
+                .attr("width", width-margin.left-margin.right )
+                .attr("height", height-margin.top-margin.bottom )
+                .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
+        var planTip=d3.tip()
+                .attr("class","factTip")
+                .offset([-10,0])
+                .html(function(d){
+                    var yStartDate= d.startDate;
+                    var yEndDate= d.endDate;
+                    return '<p>预计完成时间</p><p>'+yStartDate.getFullYear()+'-'+(yStartDate.getMonth()+1)+'-'+yStartDate.getDate()+'<span>至</span>'+yEndDate.getFullYear()+'-'+(yEndDate.getMonth()+1)+'-'+yEndDate.getDate()+'</p>' +
+                            '<p><strong>使用天数:</strong>'+((d.endDate-d.startDate)/1000/60/60/24)+'</p>';
+                });
+        svg.call(planTip);
+        svg.selectAll(".chart")
+                .data(tasks, keyFunction).enter()
+                .append("rect")
+                .attr("rx", 5)
+                .attr("ry", 5)
+                .attr("class","planRect")
+                .attr("y", 0)
+                .attr("transform", rectTransform)
+                .attr("height", function(d) { return y.rangeBand(); })
+                .attr("width", function(d) {
+                    return (x(d.endDate) - x(d.startDate));
+                })
+                .attr('fill','#669900')
+                .on('mouseover', planTip.show)
+                .on('mouseout', planTip.hide);
 
-    function changeTimeDomain(timeDomainString) {
-        this.timeDomainString = timeDomainString;
-        switch (timeDomainString) {
-            case "1hr":
-                format = "%H:%M:%S";
-                gantt.timeDomain([ d3.time.hour.offset(getEndDate(), -1), getEndDate() ]);
-                break;
-            case "3hr":
-                format = "%H:%M";
-                gantt.timeDomain([ d3.time.hour.offset(getEndDate(), -3), getEndDate() ]);
-                break;
+        var factTip=d3.tip()
+                .attr("class","factTip")
+                .offset([-10,0])
+                .html(function(d){
+                    var yStartDate= d.fact.startDate;
+                    var yEndDate= d.fact.endDate;
+                    return '<p>实际完成时间</p><p>'+yStartDate.getFullYear()+'-'+(yStartDate.getMonth()+1)+'-'+yStartDate.getDate()+'<span>To</span>'+yEndDate.getFullYear()+'-'+(yEndDate.getMonth()+1)+'-'+yEndDate.getDate()+'</p>' +
+                            '<p><strong>使用天数:</strong>'+((d.endDate-d.startDate)/1000/60/60/24)+'</p>';
+                });
+        svg.call(factTip);
+        svg.selectAll(".factChart")
+                .data(tasks).enter()
+                .append("rect")
+                .attr("rx", 5)
+                .attr("ry", 5)
+                .attr("class", ".factChart")
+                .attr("x",function(d){
+                    return (x(d.fact.startDate)-x(d.startDate));
+                })
+                .attr("y", y.rangeBand()/2/2)
+                .attr("transform", rectTransform)
+                .attr("height", function(d) { return y.rangeBand()/2; })
+                .attr("width", function(d,i) {
+                    return (x(d.fact.endDate) - x(d.fact.startDate));
+                })
+                .attr("fill","red")
+                .on('mouseover', factTip.show)
+                .on('mouseout', factTip.hide);
 
-            case "6hr":
-                format = "%H:%M";
-                gantt.timeDomain([ d3.time.hour.offset(getEndDate(), -6), getEndDate() ]);
-                break;
+        svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0, " + (height - margin.top - margin.bottom) + ")")
+                .call(xAxis)
+                .selectAll("text")
+                .attr("transform", "rotate(-20)");
 
-            case "1day":
-                format = "%Y-%m-%d";
-                break;
+        svg.append("g")
+                .attr("class", "y axis")
+                .call(yAxis)
+                .append("text")
+                .text("aa")
+                .attr("transform","translate(0,0)")
+                .attr("text-anchor","end")
+                .attr("font-size","12px")
+                .attr("color","red");
 
-            case "1week":
-                format = "%a %H:%M";
-                gantt.timeDomain([ d3.time.day.offset(getEndDate(), -7), getEndDate() ]);
-                break;
-            default:
-                format = "%H:%M"
-
-        }
-        gantt.getTimeDomain(d3.min( tasks,function(d){ return d.startDate;}),d3.max( tasks,function(d){ return d.endDate;}))
-        gantt.tickFormat(format);
-        gantt.redraw(tasks);
-    }
-
-//    function getEndDate() {
-//        var lastEndDate = Date.now();
-//        if (tasks.length > 0) {
-//            lastEndDate = tasks[tasks.length - 1].endDate;
-//        }
-//
-//        return lastEndDate;
-//    }
-//
-//    function addTask() {
-//        var lastEndDate = getEndDate();
-//        var taskStatusKeys = Object.keys(taskStatus);
-//        var taskStatusName = taskStatusKeys[Math.floor(Math.random() * taskStatusKeys.length)];
-//        var taskName = taskNames[Math.floor(Math.random() * taskNames.length)];
-//
-//        tasks.push({
-//            "startDate" : d3.time.hour.offset(lastEndDate, Math.ceil(1 * Math.random())),
-//            "endDate" : d3.time.hour.offset(lastEndDate, (Math.ceil(Math.random() * 3)) + 1),
-//            "taskName" : taskName,
-//            "status" : taskStatusName
-//        });
-//
-//        changeTimeDomain(timeDomainString);
-//        gantt.redraw(tasks);
-//    };
-//
-//    function removeTask() {
-//        tasks.pop();
-//        changeTimeDomain(timeDomainString);
-//        gantt.redraw(tasks);
-//    };
 </script>

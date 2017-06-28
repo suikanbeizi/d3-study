@@ -15,22 +15,29 @@ html,body,#wrapper {
     shape-rendering: crispEdges;
 }
 
-.bar {
-    fill: #33b5e5;
+.factTip{
+    background-color: rgba(0,0,0,.7);
+    border-radius: 5px;
+    padding: 0 5px;
 }
-
-.bar-failed {
-    fill: #CC0000;
+.factTip p{
+    margin: 5px 0;
+    color: #fff;
 }
-
-.bar-running {
-    fill: #669900;
+.factTip p span{
+    margin: 0 5px;
 }
-
-.bar-succeeded {
-    fill: #33b5e5;
+.factTip:after {
+    box-sizing: border-box;
+    display: inline;
+    font-size: 10px;
+    width: 100%;
+    line-height: 1;
+    color: rgba(0, 0, 0, 0.7);
+    content: "\25BC";
+    position: absolute;
+    text-align: center;
 }
-
-.bar-killed {
-    fill: #ffbb33;
+.legend{
+    background-color: red;
 }

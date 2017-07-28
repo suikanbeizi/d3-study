@@ -68,16 +68,7 @@
                 .attr("width", width-margin.left-margin.right )
                 .attr("height", height-margin.top-margin.bottom )
                 .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
-        var planTip=d3.tip()
-                .attr("class","factTip")
-                .offset([-10,0])
-                .html(function(d){
-                    var yStartDate= d.startDate;
-                    var yEndDate= d.endDate;
-                    return '<p>预计完成时间</p><p>'+yStartDate.getFullYear()+'-'+(yStartDate.getMonth()+1)+'-'+yStartDate.getDate()+'<span>至</span>'+yEndDate.getFullYear()+'-'+(yEndDate.getMonth()+1)+'-'+yEndDate.getDate()+'</p>' +
-                            '<p><strong>使用天数:</strong>'+((d.endDate-d.startDate)/1000/60/60/24)+'</p>';
-                });
-        svg.call(planTip);
+
         svg.selectAll(".chart")
                 .data(tasks, keyFunction).enter()
                 .append("rect")
@@ -90,38 +81,10 @@
                 .attr("width", function(d) {
                     return (x(d.endDate) - x(d.startDate));
                 })
-                .attr('fill','#669900')
-                .on('mouseover', planTip.show)
-                .on('mouseout', planTip.hide);
+                .attr('fill','#669900');
 
-        var factTip=d3.tip()
-                .attr("class","factTip")
-                .offset([-10,0])
-                .html(function(d){
-                    var yStartDate= d.fact.startDate;
-                    var yEndDate= d.fact.endDate;
-                    return '<p>实际完成时间</p><p>'+yStartDate.getFullYear()+'-'+(yStartDate.getMonth()+1)+'-'+yStartDate.getDate()+'<span>To</span>'+yEndDate.getFullYear()+'-'+(yEndDate.getMonth()+1)+'-'+yEndDate.getDate()+'</p>' +
-                            '<p><strong>使用天数:</strong>'+((d.endDate-d.startDate)/1000/60/60/24)+'</p>';
-                });
-        svg.call(factTip);
-        svg.selectAll(".factChart")
-                .data(tasks).enter()
-                .append("rect")
-                .attr("rx", 5)
-                .attr("ry", 5)
-                .attr("class", ".factChart")
-                .attr("x",function(d){
-                    return (x(d.fact.startDate)-x(d.startDate));
-                })
-                .attr("y", y.rangeBand()/2/2)
-                .attr("transform", rectTransform)
-                .attr("height", function(d) { return y.rangeBand()/2; })
-                .attr("width", function(d,i) {
-                    return (x(d.fact.endDate) - x(d.fact.startDate));
-                })
-                .attr("fill","red")
-                .on('mouseover', factTip.show)
-                .on('mouseout', factTip.hide);
+
+
 
         svg.append("g")
                 .attr("class", "x axis")
